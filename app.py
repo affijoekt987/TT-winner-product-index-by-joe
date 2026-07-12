@@ -1,10 +1,9 @@
 import streamlit as st
-from groq import Groq
-import base64
+import google.generativeai as genai
 from PIL import Image
 import io
 
-# 1. ตั้งค่าหน้าเว็บแบบ Premium Layout
+# 1. ตั้งค่าหน้าเว็บพรีเมียมสีชมพู TikTok
 st.set_page_config(page_title="TWI Analyzer - พี่โจ รีเจนตามงบ", page_icon="🚀", layout="centered")
 
 st.markdown("""
@@ -26,17 +25,18 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 TWI Analyzer v4.3 (ระบบ Groq Production)")
+st.title("🚀 TWI Analyzer v5.0 (เวอร์ชันเสถียรที่สุด)")
 st.caption("⚡ สมองกลวิเคราะห์สินค้าวิน & พิมพ์เขียวคอนเทนต์ | สไตล์ พี่โจ รีเจนตามงบ")
 st.markdown("---")
 
-# 2. เชื่อมต่อระบบหลังบ้าน Groq
-if "GROQ_API_KEY" in st.secrets:
-    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+# 2. ผูกรหัสกุญแจดักจับทั้งสองชื่อเพื่อความชัวร์
+api_key = st.secrets.get("GEMINI_API_KEY") or st.secrets.get("GOOGLE_API_KEY")
+if api_key:
+    genai.configure(api_key=api_key)
 else:
-    st.error("🔑 ไม่พบรหัสกุญแจในระบบ Secrets กรุณาใส่รหัส GROQ_API_KEY ก่อนครับพี่โจ")
+    st.error("🔑 ไม่พบรหัสกุญแจในระบบ Secrets กรุณาเช็คการตั้งค่าระบุรหัสกุญแจก่อนครับพี่โจ")
 
-# 3. จัดกลุ่มกล่องข้อมูลการตลาด
+# 3. กล่องกรอกข้อมูลการตลาด
 with st.container(border=True):
     st.markdown("### 📦 ข้อมูลการตลาดและผลตอบแทน")
     col1, col2 = st.columns(2)
@@ -48,13 +48,7 @@ with st.container(border=True):
 
 st.markdown("---")
 
-# ฟังก์ชันแปลงรูปภาพเป็น Base64 ส่งให้ Groq อ่าน
-def encode_image_to_base64(image):
-    buffered = io.BytesIO()
-    image.save(buffered, format="JPEG")
-    return base64.b64encode(buffered.getvalue()).decode('utf-8')
-
-# 4. ส่วนอัปโหลดรูปภาพ
+# 4. ส่วนอัปโหลดรูปภาพแดชบอร์ด
 st.subheader("📸 อัปโหลดรูปภาพสถิติ")
 uploaded_file = st.file_uploader("เลือกรูปภาพแดชบอร์ด 7 วันย้อนหลัง", type=["png", "jpg", "jpeg"])
 
@@ -63,10 +57,10 @@ if uploaded_file is not None:
     st.image(image, caption="รูปภาพแดชบอร์ดที่อัปโหลดเข้าสู่ระบบ", use_container_width=True)
     
     if st.button("🚀 เริ่มสแกนและวิเคราะห์ผลด่วน"):
-        with st.spinner("🧙‍♂️ เลขาจีกำลังส่งข้อมูลให้ระบบ Groq ถอดรหัสภาพสักครู่ครับ..."):
+        with st.spinner("🧙‍♂️ เลขาจีกำลังใช้เวทมนตร์วิเคราะห์สถิติด้านหลังภาพสักครู่ครับ..."):
             try:
-                # แปลงภาพ
-                base64_image = encode_image_to_base64(image)
+                # เรียกใช้โมเดลรุ่นเสถียรที่อ่านภาพและตารางเก่งที่สุด
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 
                 prompt = f"""
                 คุณคือผู้เชี่ยวชาญด้าน TikTok Affiliate Marketing และเป็นสมองกลของช่อง "พี่โจ รีเจนตามงบ"
@@ -78,7 +72,7 @@ if uploaded_file is not None:
                 กรุณาสรุปผลลัพธ์เป็นภาษาไทย โดยแบ่งเนื้อหาออกเป็น 3 ส่วนเพื่อนำไปใส่ในระบบ Tab ดังนี้:
                 
                 [PART_1]
-                เขียนคะแนนสรุปตัวเลขดิบเพียวๆ บรรทัดแรก เช่น คะแนน: 88
+                เขียนคะแนนสรุปตัวเลขดิบเพียวๆ บรรทัดแรก เช่น คะแนน: 95
                 และระบุช่วงกลุ่มผลการตัดสินใจจาก 4 ช่วงนี้ให้ชัดเจน:
                 - ช่วง 85 - 100 คะแนน: [🏆 สินค้าโคตรวิน ทุบยอดขายด่วน!]
                 - ช่วง 65 - 84 คะแนน: [⭐️ กระแสดี น่าบิ้วด์ตามงบ]
@@ -98,28 +92,10 @@ if uploaded_file is not None:
                 - ระบุค่าตัวเลข Orders, CTR, จำนวนครีเอเตอร์, รถเข็น ที่คุณอ่านได้จริงจากภาพแดชบอร์ด
                 """
                 
-                # อัปเดตใช้โมเดลเวอร์ชันเสถียร (Instruct)
-                chat_completion = client.chat.completions.create(
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/jpeg;base64,{base64_image}",
-                                    },
-                                },
-                            ],
-                        }
-                    ],
-                    model="llama-3.2-11b-vision-instruct",
-                )
+                response = model.generate_content([image, prompt])
+                raw_text = response.text
                 
-                raw_text = chat_completion.choices[0].message.content
-                
-                # แยกข้อมูลลงแท็บ
+                # แยกข้อมูลลงแต่ละแท็บหน้าเว็บ
                 parts = raw_text.split("[PART_")
                 part1 = parts[1].replace("1]", "") if len(parts) > 1 else raw_text
                 part2 = parts[2].replace("2]", "") if len(parts) > 2 else "ไม่มีข้อมูลพิมพ์เขียว"
