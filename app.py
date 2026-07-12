@@ -60,7 +60,7 @@ if uploaded_file is not None:
         with st.spinner("🧙‍♂️ เลขาจีกำลังใช้เวทมนตร์วิเคราะห์สถิติด้านหลังภาพสักครู่ครับ..."):
             try:
                 # เรียกใช้โมเดลรุ่นเสถียรที่อ่านภาพและตารางเก่งที่สุด
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('gemini-3.5-flash')
                 
                 prompt = f"""
                 คุณคือผู้เชี่ยวชาญด้าน TikTok Affiliate Marketing และเป็นสมองกลของช่อง "พี่โจ รีเจนตามงบ"
