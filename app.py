@@ -26,7 +26,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 TWI Analyzer v4.2 (ระบบ Groq สายฟรีร้อยเปอร์เซ็นต์)")
+st.title("🚀 TWI Analyzer v4.3 (ระบบ Groq Production)")
 st.caption("⚡ สมองกลวิเคราะห์สินค้าวิน & พิมพ์เขียวคอนเทนต์ | สไตล์ พี่โจ รีเจนตามงบ")
 st.markdown("---")
 
@@ -98,7 +98,7 @@ if uploaded_file is not None:
                 - ระบุค่าตัวเลข Orders, CTR, จำนวนครีเอเตอร์, รถเข็น ที่คุณอ่านได้จริงจากภาพแดชบอร์ด
                 """
                 
-                # สั่งงานผ่านโมเดลสายตาอันทรงพลังของ Llama 3.2
+                # อัปเดตใช้โมเดลเวอร์ชันเสถียร (Instruct)
                 chat_completion = client.chat.completions.create(
                     messages=[
                         {
@@ -114,7 +114,7 @@ if uploaded_file is not None:
                             ],
                         }
                     ],
-                    model="llama-3.2-11b-vision-preview",
+                    model="llama-3.2-11b-vision-instruct",
                 )
                 
                 raw_text = chat_completion.choices[0].message.content
